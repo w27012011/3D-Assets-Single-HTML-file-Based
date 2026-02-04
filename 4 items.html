@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUXE 3D | Fluid + Wireframe Assets</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --fluid-cyan: #00f3ff;
+            --wire-orange: #ff6b35;
+            --deep-void: #0a0a0f;
+            --grid-cyan: rgba(0, 243, 255, 0.03);
+            --luxury-ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        body {
+            background: var(--deep-void);
+            color: #fff;
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* Dynamic Grid Background */
+        .fluid-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-cyan) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-cyan) 1px, transparent 1px);
+            background-size: 80px 80px;
+            pointer-events: none;
+            z-index: 1;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: center top;
+            opacity: 0.4;
+            animation: gridFloat 20s ease-in-out infinite;
+        }
+        
+        @keyframes gridFloat {
+            0%, 100% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            50% { transform: perspective(500px) rotateX(60deg) translateY(-20px); }
+        }
+        
+        /* Code Panel */
+        .code-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            width: 420px;
+            transform: translateX(120%);
+            transition: transform 0.6s var(--luxury-ease);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 0 1px rgba(0, 243, 255, 0.1);
+        }
+        
+        .code-panel.active {
+            transform: translateX(0);
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.15);
+        }
+        
+        .code-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--fluid-cyan);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .code-title::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--fluid-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--fluid-cyan);
+        }
+        
+        .close-btn {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: var(--wire-orange);
+            cursor: pointer;
+            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 107, 53, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        .code-content {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 11px;
+            max-height: 400px;
+            overflow-y: auto;
+            color: #a5f3fc;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: 1px solid rgba(0, 243, 255, 0.08);
+            line-height: 1.6;
+            position: relative;
+        }
+        
+        .code-content::before {
+            content: '// FLUID_SIMULATION_V2.0';
+            display: block;
+            color: var(--wire-orange);
+            margin-bottom: 8px;
+            font-size: 10px;
+        }
+        
+        .copy-btn {
+            width: 100%;
+            margin-top: 16px;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(255, 107, 53, 0.1));
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 8px;
+            color: var(--fluid-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 11px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .copy-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(255, 107, 53, 0.2));
+            border-color: var(--fluid-cyan);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(0, 243, 255, 0.3);
+        }
+        
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+            color: white;
+        }
+        
+        /* Sections */
+        .asset-section {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.05);
+        }
+        
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+        
+        /* Liquid Overlay Effect */
+        .liquid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(10, 10, 15, 0.4) 100%);
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* Asset Info - Fluid Style */
+        .asset-info {
+            position: absolute;
+            bottom: 60px;
+            left: 60px;
+            z-index: 100;
+            pointer-events: none;
+            max-width: 500px;
+        }
+        
+        .asset-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .asset-category {
+            font-size: 10px;
+            color: var(--wire-orange);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding: 4px 12px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 4px;
+            background: rgba(255, 107, 53, 0.05);
+        }
+        
+        .asset-number {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+        
+        .asset-name {
+            font-size: 52px;
+            font-weight: 200;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #fff 0%, var(--fluid-cyan) 50%, var(--wire-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .asset-desc {
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.8;
+            font-weight: 300;
+            max-width: 400px;
+        }
+        
+        .fluid-stats {
+            margin-top: 24px;
+            display: flex;
+            gap: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(0, 243, 255, 0.1);
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .stat-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.3);
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            color: var(--fluid-cyan);
+            font-family: 'Courier New', monospace;
+            font-weight: 300;
+        }
+        
+        /* Grab Code Button */
+        .grab-code {
+            position: absolute;
+            bottom: 60px;
+            right: 60px;
+            z-index: 100;
+            padding: 18px 36px;
+            background: transparent;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--fluid-cyan);
+            border-radius: 100px;
+            cursor: pointer;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            backdrop-filter: blur(10px);
+            transition: all 0.4s var(--luxury-ease);
+            pointer-events: all;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+        
+        .grab-code::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .grab-code:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .grab-code:hover {
+            border-color: var(--fluid-cyan);
+            box-shadow: 
+                0 0 30px rgba(0, 243, 255, 0.2),
+                inset 0 0 20px rgba(0, 243, 255, 0.05);
+            letter-spacing: 4px;
+        }
+        
+        .grab-code::after {
+            content: '</>';
+            font-weight: 700;
+            color: var(--wire-orange);
+        }
+        
+        /* Navigation */
+        .nav-dots {
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 243, 255, 0.2);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.4s;
+            position: relative;
+        }
+        
+        .dot::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background: var(--fluid-cyan);
+            transform: scale(0);
+            transition: transform 0.3s;
+        }
+        
+        .dot.active {
+            border-color: var(--fluid-cyan);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+        
+        .dot.active::after {
+            transform: scale(1);
+        }
+        
+        /* Progress Ring */
+        .progress-ring {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 100px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--fluid-cyan), var(--wire-orange));
+            width: 0%;
+            transition: width 0.1s;
+            box-shadow: 0 0 10px var(--fluid-cyan);
+        }
+        
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--deep-void);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+        
+        .loader-fluid {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--fluid-cyan);
+            border-right-color: var(--wire-orange);
+            animation: fluidSpin 2s linear infinite;
+            position: relative;
+        }
+        
+        .loader-fluid::before {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--wire-orange);
+            border-left-color: var(--fluid-cyan);
+            animation: fluidSpin 3s linear infinite reverse;
+        }
+        
+        @keyframes fluidSpin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loader-text {
+            font-size: 11px;
+            letter-spacing: 6px;
+            color: var(--fluid-cyan);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Grid -->
+    <div class="fluid-grid"></div>
+
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-fluid"></div>
+        <div class="loader-text">SYNTHESIZING FLUIDS</div>
+    </div>
+
+    <!-- Code Panel -->
+    <div class="code-panel" id="codePanel">
+        <div class="code-header">
+            <span class="code-title" id="codeTitle">FLUID_ASSET_V1</span>
+            <button class="close-btn" onclick="closeCodePanel()">×</button>
+        </div>
+        <div class="code-content" id="codeContent">Select asset to extract shader code...</div>
+        <button class="copy-btn" id="copyBtn" onclick="copyCode()">Initialize Transfer</button>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-dots" id="navDots"></div>
+    
+    <!-- Progress -->
+    <div class="progress-ring">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Asset 1: Liquid Pool with Wireframe Ripples -->
+    <section class="asset-section" id="section-0" data-asset="liquid-pool">
+        <div class="liquid-overlay"></div>
+        <div class="canvas-container" id="canvas-0"></div>
+        <div class="asset-info">
+            <div class="asset-meta">
+                <div class="asset-category">Fluid Dynamics</div>
+                <div class="asset-number">FL-001</div>
+            </div>
+            <div class="asset-name">Liquid Pool</div>
+            <div class="asset-desc">Sine-wave displacement mapping with wireframe skeleton projection. Real-time ripple propagation through vertex manipulation.</div>
+            <div class="fluid-stats">
+                <div class="stat">
+                    <div class="stat-label">Vertices</div>
+                    <div class="stat-value">65,536</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Wave Speed</div>
+                    <div class="stat-value">1.2 m/s</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Viscosity</div>
+                    <div class="stat-value">0.89</div>
+                </div>
+            </div>
+        </div>
+        <button class="grab-code" onclick="showCode('pool')">Extract Code</button>
+    </section>
+
+    <!-- Asset 2: Morphing Blob with Cage -->
+    <section class="asset-section" id="section-1" data-asset="morph-blob">
+        <div class="liquid-overlay"></div>
+        <div class="canvas-container" id="canvas-1"></div>
+        <div class="asset-info">
+            <div class="asset-meta">
+                <div class="asset-category">Organic Mesh</div>
+                <div class="asset-number">FL-002</div>
+            </div>
+            <div class="asset-name">Morphing Blob</div>
+            <div class="asset-desc">Simplex noise displacement with icosahedral wireframe cage. Surface tension simulation with elastic deformation.</div>
+            <div class="fluid-stats">
+                <div class="stat">
+                    <div class="stat-label">Noise Octaves</div>
+                    <div class="stat-value">4</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Tension</div>
+                    <div class="stat-value">0.72 N</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Elasticity</div>
+                    <div class="stat-value">1.4</div>
+                </div>
+            </div>
+        </div>
+        <button class="grab-code" onclick="showCode('blob')">Extract Code</button>
+    </section>
+
+    <!-- Asset 3: Fluid Torus with Structural Grid -->
+    <section class="asset-section" id="section-2" data-asset="fluid-torus">
+        <div class="liquid-overlay"></div>
+        <div class="canvas-container" id="canvas-2"></div>
+        <div class="asset-info">
+            <div class="asset-meta">
+                <div class="asset-category">Topology</div>
+                <div class="asset-number">FL-003</div>
+            </div>
+            <div class="asset-name">Fluid Torus</div>
+            <div class="asset-desc">Knot topology with flowing surface normals. Wireframe grid follows UV mapping for technical visualization aesthetic.</div>
+            <div class="fluid-stats">
+                <div class="stat">
+                    <div class="stat-label">Tubular Segs</div>
+                    <div class="stat-value">200</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Radial Segs</div>
+                    <div class="stat-value">32</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Flow Rate</div>
+                    <div class="stat-value">2.8 L/s</div>
+                </div>
+            </div>
+        </div>
+        <button class="grab-code" onclick="showCode('torus')">Extract Code</button>
+    </section>
+
+    <!-- Asset 4: Wave Interference with Vector Field -->
+    <section class="asset-section" id="section-3" data-asset="wave-field">
+        <div class="liquid-overlay"></div>
+        <div class="canvas-container" id="canvas-3"></div>
+        <div class="asset-info">
+            <div class="asset-meta">
+                <div class="asset-category">Vector Field</div>
+                <div class="asset-number">FL-004</div>
+            </div>
+            <div class="asset-name">Wave Interference</div>
+            <div class="asset-desc">Multi-source wave propagation with wireframe vector arrows. Phase-shifting interference patterns with amplitude modulation.</div>
+            <div class="fluid-stats">
+                <div class="stat">
+                    <div class="stat-label">Sources</div>
+                    <div class="stat-value">3</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Frequency</div>
+                    <div class="stat-value">2.4 Hz</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Amplitude</div>
+                    <div class="stat-value">0.8 m</div>
+                </div>
+            </div>
+        </div>
+        <button class="grab-code" onclick="showCode('wave')">Extract Code</button>
+    </section>
+
+    <script>
+        const assetCodes = {
+            pool: `// Liquid Pool + Wireframe Ripples
+const geometry = new THREE.PlaneGeometry(10, 10, 256, 256);
+const positions = geometry.attributes.position;
+
+// Wireframe overlay
+const wireGeo = new THREE.WireframeGeometry(geometry);
+const wireMat = new THREE.LineBasicMaterial({ 
+    color: 0xff6b35,
+    transparent: true,
+    opacity: 0.3
+});
+const wireframe = new THREE.LineSegments(wireGeo, wireMat);
+wireframe.position.y = 0.5; // Project upward
+
+// Shader material for fluid surface
+const material = new THREE.ShaderMaterial({
+    uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color(0x00f3ff) }
+    },
+    vertexShader: \`
+        uniform float uTime;
+        varying vec2 vUv;
+        varying float vElevation;
+        
+        void main() {
+            vUv = uv;
+            vec3 pos = position;
+            
+            // Ripple waves
+            float wave1 = sin(pos.x * 2.0 + uTime) * 0.3;
+            float wave2 = sin(pos.y * 1.5 + uTime * 0.8) * 0.3;
+            float wave3 = sin((pos.x + pos.y) * 1.0 + uTime * 1.2) * 0.2;
+            
+            pos.z += wave1 + wave2 + wave3;
+            vElevation = pos.z;
+            
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+    \`,
+    fragmentShader: \`
+        uniform vec3 uColor;
+        varying float vElevation;
+        varying vec2 vUv;
+        
+        void main() {
+            float mixStrength = (vElevation + 0.5) * 0.5;
+            vec3 color = mix(uColor, vec3(1.0), mixStrength * 0.3);
+            float alpha = 0.8 + mixStrength * 0.2;
+            gl_FragColor = vec4(color, alpha);
+        }
+    \`,
+    transparent: true,
+    side: THREE.DoubleSide
+});
+
+const mesh = new THREE.Mesh(geometry, material);
+mesh.rotation.x = -Math.PI * 0.5;
+scene.add(mesh);
+scene.add(wireframe);
+
+// Sync wireframe with waves
+function animate() {
+    material.uniforms.uTime.value += 0.02;
+    
+    // Update wireframe positions to match waves
+    const positions = geometry.attributes.position;
+    const wirePositions = wireframe.geometry.attributes.position;
+    
+    for(let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const y = positions.getY(i);
+        const wave1 = Math.sin(x * 2 + time) * 0.3;
+        const wave2 = Math.sin(y * 1.5 + time * 0.8) * 0.3;
+        const z = wave1 + wave2;
+        
+        wirePositions.setZ(i, z + 0.5); // Project upward
+    }
+    wirePositions.needsUpdate = true;
+}`,
+
+            blob: `// Morphing Blob + Icosahedral Cage
+const geometry = new THREE.IcosahedronGeometry(2, 60);
+const wireGeo = new THREE.IcosahedronGeometry(2.5, 2); // Cage
+const wireMat = new THREE.MeshBasicMaterial({
+    color: 0xff6b35,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.15
+});
+const cage = new THREE.Mesh(wireGeo, wireMat);
+
+// Simplex noise in vertex shader
+const material = new THREE.ShaderMaterial({
+    uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color(0x00f3ff) }
+    },
+    vertexShader: \`
+        uniform float uTime;
+        varying vec3 vNormal;
+        varying float vDisplacement;
+        
+        // Simplex noise functions here...
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+        
+        float snoise(vec3 v) {
+            const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+            const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+            vec3 i  = floor(v + dot(v, C.yyy));
+            vec3 x0 = v - i + dot(i, C.xxx);
+            // ... full simplex implementation
+            return 0.0; // Return calculated noise
+        }
+        
+        void main() {
+            vNormal = normal;
+            float noise = snoise(position * 0.5 + uTime * 0.3);
+            float displacement = noise * 0.5;
+            vDisplacement = displacement;
+            vec3 newPos = position + normal * displacement;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+        }
+    \`,
+    fragmentShader: \`
+        uniform vec3 uColor;
+        varying vec3 vNormal;
+        varying float vDisplacement;
+        
+        void main() {
+            vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+            float diff = max(dot(vNormal, light), 0.0);
+            vec3 color = uColor * (0.5 + diff * 0.5);
+            color += vDisplacement * 0.2;
+            gl_FragColor = vec4(color, 0.9);
+        }
+    \`,
+    transparent: true
+});
+
+const blob = new THREE.Mesh(geometry, material);
+scene.add(blob);
+scene.add(cage);
+
+// Animate cage breathing
+function animate(time) {
+    material.uniforms.uTime.value = time;
+    cage.scale.setScalar(1 + Math.sin(time) * 0.05);
+    cage.rotation.y += 0.002;
+}`,
+
+            torus: `// Fluid Torus + Structural Grid
+const geometry = new THREE.TorusKnotGeometry(2, 0.6, 200, 32);
+const wireGeo = new THREE.TorusKnotGeometry(2, 0.6, 64, 16);
+const wireMat = new THREE.MeshBasicMaterial({
+    color: 0xff6b35,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.2
+});
+const grid = new THREE.Mesh(wireGeo, wireMat);
+
+const material = new THREE.ShaderMaterial({
+    uniforms: {
+        uTime: { value: 0 }
+    },
+    vertexShader: \`
+        uniform float uTime;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        
+        void main() {
+            vUv = uv;
+            vNormal = normal;
+            vec3 pos = position;
+            
+            // Flow along UV coordinates
+            float flow = sin(uv.x * 10.0 + uTime * 2.0) * 0.1;
+            flow += sin(uv.y * 8.0 - uTime) * 0.1;
+            
+            pos += normal * flow;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+    \`,
+    fragmentShader: \`
+        uniform float uTime;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        
+        void main() {
+            // Flow gradient
+            vec3 colorA = vec3(0.0, 0.95, 1.0); // Cyan
+            vec3 colorB = vec3(1.0, 0.42, 0.21); // Orange
+            
+            float mixFactor = sin(vUv.x * 5.0 + uTime) * 0.5 + 0.5;
+            vec3 color = mix(colorA, colorB, mixFactor);
+            
+            // Fresnel
+            vec3 viewDir = normalize(cameraPosition - vPosition);
+            float fresnel = pow(1.0 - dot(viewDir, vNormal), 2.0);
+            color += fresnel * 0.5;
+            
+            gl_FragColor = vec4(color, 0.85);
+        }
+    \`,
+    transparent: true
+});
+
+const torus = new THREE.Mesh(geometry, material);
+scene.add(torus);
+scene.add(grid);
+
+function animate(time) {
+    material.uniforms.uTime.value = time;
+    torus.rotation.x = time * 0.2;
+    torus.rotation.y = time * 0.3;
+    grid.rotation.copy(torus.rotation);
+}`,
+
+            wave: `// Wave Interference + Vector Field
+const size = 50;
+const geometry = new THREE.PlaneGeometry(10, 10, size, size);
+const wireGeo = new THREE.BufferGeometry();
+const wirePositions = [];
+
+// Create vector arrows
+const arrowGeo = new THREE.ConeGeometry(0.05, 0.2, 8);
+const arrowMat = new THREE.MeshBasicMaterial({ color: 0xff6b35 });
+const arrows = new THREE.InstancedMesh(arrowGeo, arrowMat, (size+1)*(size+1));
+
+const material = new THREE.ShaderMaterial({
+    uniforms: {
+        uTime: { value: 0 },
+        uSource1: { value: new THREE.Vector2(2, 2) },
+        uSource2: { value: new THREE.Vector2(-2, -1) },
+        uSource3: { value: new THREE.Vector2(0, 3) }
+    },
+    vertexShader: \`
+        uniform float uTime;
+        uniform vec2 uSource1;
+        uniform vec2 uSource2;
+        uniform vec2 uSource3;
+        varying float vHeight;
+        
+        float wave(vec2 pos, vec2 source, float freq, float phase) {
+            float dist = distance(pos, source);
+            return sin(dist * freq - uTime * 3.0 + phase) / (dist * 0.5 + 1.0);
+        }
+        
+        void main() {
+            vec2 pos = position.xy;
+            
+            float h1 = wave(pos, uSource1, 2.0, 0.0);
+            float h2 = wave(pos, uSource2, 1.8, 2.0);
+            float h3 = wave(pos, uSource3, 2.2, 4.0);
+            
+            vHeight = h1 + h2 + h3;
+            vec3 newPos = vec3(pos.x, pos.y, vHeight * 0.5);
+            
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+        }
+    \`,
+    fragmentShader: \`
+        varying float vHeight;
+        
+        void main() {
+            vec3 color = mix(
+                vec3(0.0, 0.95, 1.0),
+                vec3(1.0, 0.42, 0.21),
+                vHeight * 0.5 + 0.5
+            );
+            gl_FragColor = vec4(color, 0.8);
+        }
+    \`,
+    transparent: true,
+    side: THREE.DoubleSide
+});
+
+const mesh = new THREE.Mesh(geometry, material);
+mesh.rotation.x = -Math.PI / 2;
+scene.add(mesh);
+scene.add(arrows);
+
+// Update arrow orientations
+function animate(time) {
+    material.uniforms.uTime.value = time;
+    
+    const positions = geometry.attributes.position;
+    const dummy = new THREE.Object3D();
+    let idx = 0;
+    
+    for(let i = 0; i <= size; i++) {
+        for(let j = 0; j <= size; j++) {
+            const x = (j / size - 0.5) * 10;
+            const y = (i / size - 0.5) * 10;
+            
+            // Calculate wave height and gradient
+            const h = getWaveHeight(x, y, time);
+            const hx = getWaveHeight(x + 0.1, y, time);
+            const hy = getWaveHeight(x, y + 0.1, time);
+            
+            const slopeX = (hx - h) / 0.1;
+            const slopeY = (hy - h) / 0.1;
+            
+            dummy.position.set(x, h * 0.5 + 0.2, y);
+            dummy.rotation.x = -slopeY;
+            dummy.rotation.z = slopeX;
+            dummy.updateMatrix();
+            arrows.setMatrixAt(idx++, dummy.matrix);
+        }
+    }
+    arrows.instanceMatrix.needsUpdate = true;
+}`
+        };
+
+        let currentCode = '';
+        let scenes = [];
+        let activeSection = 0;
+
+        window.addEventListener('load', () => {
+            initScenes();
+            createNavDots();
+            setupProgress();
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').remove(), 800);
+            }, 2000);
+        });
+
+        function setupProgress() {
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                document.getElementById('progressFill').style.width = scrolled + "%";
+            });
+        }
+
+        function showCode(type) {
+            const panel = document.getElementById('codePanel');
+            const content = document.getElementById('codeContent');
+            const title = document.getElementById('codeTitle');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            currentCode = assetCodes[type];
+            content.textContent = currentCode;
+            
+            const titles = {
+                pool: 'LIQUID_POOL_V2.1',
+                blob: 'MORPH_BLOB_V1.8',
+                torus: 'FLUID_TORUS_V3.0',
+                wave: 'WAVE_FIELD_V2.5'
+            };
+            title.textContent = titles[type];
+            
+            panel.classList.add('active');
+            copyBtn.textContent = 'Initialize Transfer';
+            copyBtn.classList.remove('copied');
+        }
+
+        function closeCodePanel() {
+            document.getElementById('codePanel').classList.remove('active');
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(currentCode).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = 'Transfer Complete';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Initialize Transfer';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function createNavDots() {
+            const container = document.getElementById('navDots');
+            document.querySelectorAll('.asset-section').forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.className = 'dot' + (idx === 0 ? ' active' : '');
+                dot.onclick = () => scrollToSection(idx);
+                container.appendChild(dot);
+            });
+        }
+
+        function scrollToSection(index) {
+            document.getElementById('section-' + index).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const index = parseInt(entry.target.id.split('-')[1]);
+                    activeSection = index;
+                    document.querySelectorAll('.dot').forEach((dot, idx) => {
+                        dot.classList.toggle('active', idx === index);
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.asset-section').forEach(section => {
+            observer.observe(section);
+        });
+
+        function initScenes() {
+            initPoolScene();
+            initBlobScene();
+            initTorusScene();
+            initWaveScene();
+            animate();
+        }
+
+        function initPoolScene() {
+            const container = document.getElementById('canvas-0');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 8, 8);
+            camera.lookAt(0, 0, 0);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+            
+            const geometry = new THREE.PlaneGeometry(12, 12, 128, 128);
+            
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uColor: { value: new THREE.Color(0x00f3ff) }
+                },
+                vertexShader: `
+                    uniform float uTime;
+                    varying vec2 vUv;
+                    varying float vElevation;
+                    
+                    void main() {
+                        vUv = uv;
+                        vec3 pos = position;
+                        
+                        float wave1 = sin(pos.x * 2.0 + uTime) * 0.4;
+                        float wave2 = sin(pos.y * 1.5 + uTime * 0.8) * 0.4;
+                        float wave3 = sin((pos.x + pos.y) * 1.0 + uTime * 1.2) * 0.3;
+                        float wave4 = sin(length(pos.xy) * 1.5 - uTime * 2.0) * 0.2;
+                        
+                        pos.z += wave1 + wave2 + wave3 + wave4;
+                        vElevation = pos.z;
+                        
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform vec3 uColor;
+                    varying float vElevation;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        float mixStrength = (vElevation + 1.0) * 0.25;
+                        vec3 deepColor = vec3(0.0, 0.2, 0.4);
+                        vec3 surfaceColor = uColor;
+                        vec3 color = mix(deepColor, surfaceColor, mixStrength);
+                        
+                        float alpha = 0.7 + mixStrength * 0.3;
+                        
+                        // Specular highlight
+                        vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+                        float spec = pow(max(dot(normalize(vElevation + 0.5), light), 0.0), 32.0);
+                        color += vec3(1.0) * spec * 0.5;
+                        
+                        gl_FragColor = vec4(color, alpha);
+                    }
+                `,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.rotation.x = -Math.PI * 0.5;
+            scene.add(mesh);
+            
+            // Wireframe projection
+            const wireGeo = new THREE.WireframeGeometry(geometry);
+            const wireMat = new THREE.LineBasicMaterial({
+                color: 0xff6b35,
+                transparent: true,
+                opacity: 0.15
+            });
+            const wireframe = new THREE.LineSegments(wireGeo, wireMat);
+            wireframe.rotation.x = -Math.PI * 0.5;
+            wireframe.position.y = 0.8;
+            scene.add(wireframe);
+            
+            // Floating particles
+            const particlesGeo = new THREE.BufferGeometry();
+            const particleCount = 200;
+            const positions = new Float32Array(particleCount * 3);
+            for(let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 12;
+                positions[i+1] = Math.random() * 2;
+                positions[i+2] = (Math.random() - 0.5) * 12;
+            }
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                color: 0x00f3ff,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+            const particles = new THREE.Points(particlesGeo, particlesMat);
+            scene.add(particles);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0x00f3ff, 1, 50);
+            pointLight.position.set(5, 10, 5);
+            scene.add(pointLight);
+            
+            scenes.push({
+                renderer, scene, camera,
+                objects: { mesh, material, wireframe, particles },
+                update: (time) => {
+                    material.uniforms.uTime.value = time;
+                    
+                    // Sync wireframe with waves
+                    const positions = geometry.attributes.position;
+                    const wirePositions = wireframe.geometry.attributes.position;
+                    
+                    for(let i = 0; i < positions.count; i++) {
+                        const x = positions.getX(i);
+                        const y = positions.getY(i);
+                        const wave1 = Math.sin(x * 2 + time) * 0.4;
+                        const wave2 = Math.sin(y * 1.5 + time * 0.8) * 0.4;
+                        const wave3 = Math.sin((x + y) + time * 1.2) * 0.3;
+                        const z = wave1 + wave2 + wave3;
+                        
+                        // Project upward
+                        wirePositions.setZ(i, z + 0.8);
+                    }
+                    wirePositions.needsUpdate = true;
+                    
+                    // Animate particles
+                    const pPos = particles.geometry.attributes.position.array;
+                    for(let i = 1; i < particleCount * 3; i += 3) {
+                        pPos[i] += Math.sin(time + i) * 0.002;
+                        if(pPos[i] > 2) pPos[i] = 0;
+                    }
+                    particles.geometry.attributes.position.needsUpdate = true;
+                    
+                    renderer.render(scene, camera);
+                }
+            });
+        }
+
+        function initBlobScene() {
+            const container = document.getElementById('canvas-1');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.z = 7;
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+            
+            // High detail sphere
+            const geometry = new THREE.IcosahedronGeometry(2, 40);
+            
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 }
+                },
+                vertexShader: `
+                    uniform float uTime;
+                    varying vec3 vNormal;
+                    varying float vDisplacement;
+                    
+                    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                    vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                    vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+                    vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+                    
+                    float snoise(vec3 v) {
+                        const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+                        const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+                        vec3 i  = floor(v + dot(v, C.yyy));
+                        vec3 x0 = v - i + dot(i, C.xxx);
+                        vec3 g = step(x0.yzx, x0.xyz);
+                        vec3 l = 1.0 - g;
+                        vec3 i1 = min(g.xyz, l.zxy);
+                        vec3 i2 = max(g.xyz, l.zxy);
+                        vec3 x1 = x0 - i1 + C.xxx;
+                        vec3 x2 = x0 - i2 + C.yyy;
+                        vec3 x3 = x0 - D.yyy;
+                        i = mod289(i);
+                        vec4 p = permute(permute(permute(
+                            i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                            + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                            + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                        float n_ = 0.142857142857;
+                        vec3 ns = n_ * D.wyz - D.xzx;
+                        vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+                        vec4 x_ = floor(j * ns.z);
+                        vec4 y_ = floor(j - 7.0 * x_);
+                        vec4 x = x_ *ns.x + ns.yyyy;
+                        vec4 y = y_ *ns.x + ns.yyyy;
+                        vec4 h = 1.0 - abs(x) - abs(y);
+                        vec4 b0 = vec4(x.xy, y.xy);
+                        vec4 b1 = vec4(x.zw, y.zw);
+                        vec4 s0 = floor(b0)*2.0 + 1.0;
+                        vec4 s1 = floor(b1)*2.0 + 1.0;
+                        vec4 sh = -step(h, vec4(0.0));
+                        vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+                        vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+                        vec3 p0 = vec3(a0.xy,h.x);
+                        vec3 p1 = vec3(a0.zw,h.y);
+                        vec3 p2 = vec3(a1.xy,h.z);
+                        vec3 p3 = vec3(a1.zw,h.w);
+                        vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                        p0 *= norm.x;
+                        p1 *= norm.y;
+                        p2 *= norm.z;
+                        p3 *= norm.w;
+                        vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                        m = m * m;
+                        return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+                    }
+                    
+                    void main() {
+                        vNormal = normal;
+                        float noise = snoise(position * 0.4 + uTime * 0.2);
+                        noise += snoise(position * 0.8 + uTime * 0.4) * 0.5;
+                        float displacement = noise * 0.6;
+                        vDisplacement = displacement;
+                        vec3 newPos = position + normal * displacement;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    varying float vDisplacement;
+                    
+                    void main() {
+                        vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+                        float diff = max(dot(vNormal, light), 0.0);
+                        
+                        vec3 colorA = vec3(0.0, 0.95, 1.0);
+                        vec3 colorB = vec3(0.0, 0.4, 0.8);
+                        vec3 color = mix(colorB, colorA, diff * 0.5 + 0.5);
+                        
+                        color += vDisplacement * 0.3;
+                        
+                        float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.0);
+                        color += vec3(0.0, 0.8, 1.0) * fresnel * 0.5;
+                        
+                        gl_FragColor = vec4(color, 0.9);
+                    }
+                `,
+                transparent: true
+            });
+            
+            const blob = new THREE.Mesh(geometry, material);
+            scene.add(blob);
+            
+            // Icosahedral cage
+            const cageGeo = new THREE.IcosahedronGeometry(2.8, 2);
+            const cageMat = new THREE.MeshBasicMaterial({
+                color: 0xff6b35,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.12
+            });
+            const cage = new THREE.Mesh(cageGeo, cageMat);
+            scene.add(cage);
+            
+            // Inner core
+            const coreGeo = new THREE.IcosahedronGeometry(0.5, 2);
+            const coreMat = new THREE.MeshBasicMaterial({
+                color: 0xff6b35,
+                wireframe: true
+            });
+            const core = new THREE.Mesh(coreGeo, coreMat);
+            scene.add(core);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            scenes.push({
+                renderer, scene, camera,
+                objects: { material, blob, cage, core },
+                update: (time) => {
+                    material.uniforms.uTime.value = time;
+                    blob.rotation.y = time * 0.1;
+                    blob.rotation.z = time * 0.05;
+                    
+                    cage.scale.setScalar(1 + Math.sin(time * 0.5) * 0.03);
+                    cage.rotation.y = time * 0.05;
+                    cage.rotation.x = Math.sin(time * 0.3) * 0.1;
+                    
+                    core.rotation.y = -time * 0.5;
+                    core.rotation.x = time * 0.3;
+                    
+                    renderer.render(scene, camera);
+                }
+            });
+        }
+
+        function initTorusScene() {
+            const container = document.getElementById('canvas-2');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 4, 8);
+            camera.lookAt(0, 0, 0);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+            
+            const geometry = new THREE.TorusKnotGeometry(2, 0.6, 200, 32);
+            
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 }
+                },
+                vertexShader: `
+                    uniform float uTime;
+                    varying vec2 vUv;
+                    varying vec3 vNormal;
+                    varying vec3 vPosition;
+                    
+                    void main() {
+                        vUv = uv;
+                        vNormal = normalize(normalMatrix * normal);
+                        vec3 pos = position;
+                        
+                        float flow = sin(uv.x * 15.0 + uTime * 3.0) * 0.15;
+                        flow += sin(uv.y * 10.0 - uTime * 2.0) * 0.15;
+                        flow += sin((uv.x + uv.y) * 8.0 + uTime) * 0.1;
+                        
+                        pos += normal * flow;
+                        vPosition = (modelViewMatrix * vec4(pos, 1.0)).xyz;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float uTime;
+                    varying vec2 vUv;
+                    varying vec3 vNormal;
+                    varying vec3 vPosition;
+                    
+                    void main() {
+                        vec3 colorA = vec3(0.0, 0.95, 1.0);
+                        vec3 colorB = vec3(1.0, 0.42, 0.21);
+                        
+                        float mixFactor = sin(vUv.x * 5.0 + uTime) * 0.5 + 0.5;
+                        mixFactor *= sin(vUv.y * 3.0 + uTime * 0.5) * 0.5 + 0.5;
+                        
+                        vec3 color = mix(colorA, colorB, mixFactor);
+                        
+                        vec3 viewDir = normalize(-vPosition);
+                        float fresnel = pow(1.0 - abs(dot(viewDir, vNormal)), 3.0);
+                        color += vec3(1.0) * fresnel * 0.6;
+                        
+                        float alpha = 0.75 + fresnel * 0.15;
+                        
+                        gl_FragColor = vec4(color, alpha);
+                    }
+                `,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            
+            const torus = new THREE.Mesh(geometry, material);
+            scene.add(torus);
+            
+            // Structural grid
+            const gridGeo = new THREE.TorusKnotGeometry(2, 0.6, 64, 16);
+            const gridMat = new THREE.MeshBasicMaterial({
+                color: 0xff6b35,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            const grid = new THREE.Mesh(gridGeo, gridMat);
+            scene.add(grid);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0x00f3ff, 1.5, 50);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+            
+            scenes.push({
+                renderer, scene, camera,
+                objects: { material, torus, grid },
+                update: (time) => {
+                    material.uniforms.uTime.value = time;
+                    torus.rotation.x = time * 0.15;
+                    torus.rotation.y = time * 0.25;
+                    grid.rotation.copy(torus.rotation);
+                    renderer.render(scene, camera);
+                }
+            });
+        }
+
+        function initWaveScene() {
+            const container = document.getElementById('canvas-3');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 10, 8);
+            camera.lookAt(0, 0, 0);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+            
+            const size = 60;
+            const geometry = new THREE.PlaneGeometry(12, 12, size, size);
+            
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uSource1: { value: new THREE.Vector2(3, 3) },
+                    uSource2: { value: new THREE.Vector2(-3, -2) },
+                    uSource3: { value: new THREE.Vector2(0, 4) }
+                },
+                vertexShader: `
+                    uniform float uTime;
+                    uniform vec2 uSource1;
+                    uniform vec2 uSource2;
+                    uniform vec2 uSource3;
+                    varying float vHeight;
+                    varying vec2 vUv;
+                    
+                    float wave(vec2 pos, vec2 source, float freq, float phase, float amp) {
+                        float dist = distance(pos, source);
+                        return sin(dist * freq - uTime * 4.0 + phase) * exp(-dist * 0.3) * amp;
+                    }
+                    
+                    void main() {
+                        vUv = uv;
+                        vec2 pos = position.xy;
+                        
+                        float h1 = wave(pos, uSource1, 2.0, 0.0, 0.8);
+                        float h2 = wave(pos, uSource2, 1.5, 2.0, 0.6);
+                        float h3 = wave(pos, uSource3, 1.8, 4.0, 0.7);
+                        
+                        vHeight = h1 + h2 + h3;
+                        vec3 newPos = vec3(pos.x, pos.y, vHeight * 0.8);
+                        
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying float vHeight;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec3 deepColor = vec3(0.0, 0.1, 0.3);
+                        vec3 midColor = vec3(0.0, 0.6, 0.9);
+                        vec3 highColor = vec3(0.0, 0.95, 1.0);
+                        
+                        vec3 color;
+                        if(vHeight > 0.3) {
+                            color = mix(midColor, highColor, (vHeight - 0.3) * 2.0);
+                        } else {
+                            color = mix(deepColor, midColor, (vHeight + 0.5) * 1.25);
+                        }
+                        
+                        gl_FragColor = vec4(color, 0.85);
+                    }
+                `,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.rotation.x = -Math.PI / 2;
+            scene.add(mesh);
+            
+            // Wireframe vectors
+            const arrowGeo = new THREE.ConeGeometry(0.06, 0.25, 8);
+            arrowGeo.translate(0, 0.125, 0);
+            const arrowMat = new THREE.MeshBasicMaterial({ color: 0xff6b35 });
+            const count = (size + 1) * (size + 1);
+            const arrows = new THREE.InstancedMesh(arrowGeo, arrowMat, count);
+            arrows.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            scene.add(arrows);
+            
+            const dummy = new THREE.Object3D();
+            const axis = new THREE.Vector3(0, 1, 0);
+            
+            // Wireframe grid overlay
+            const wireGeo = new THREE.WireframeGeometry(geometry);
+            const wireMat = new THREE.LineBasicMaterial({
+                color: 0xff6b35,
+                transparent: true,
+                opacity: 0.1
+            });
+            const wireframe = new THREE.LineSegments(wireGeo, wireMat);
+            wireframe.rotation.x = -Math.PI / 2;
+            scene.add(wireframe);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            scenes.push({
+                renderer, scene, camera,
+                objects: { material, mesh, arrows, wireframe, dummy, axis },
+                update: (time) => {
+                    material.uniforms.uTime.value = time;
+                    
+                    const positions = geometry.attributes.position;
+                    const { dummy, arrows, axis } = scenes[3].objects;
+                    let idx = 0;
+                    
+                    for(let i = 0; i <= size; i++) {
+                        for(let j = 0; j <= size; j++) {
+                            const x = (j / size - 0.5) * 12;
+                            const y = (i / size - 0.5) * 12;
+                            
+                            // Calculate height at this point
+                            const h1 = Math.sin(Math.sqrt((x-3)**2 + (y-3)**2) * 2 - time * 4) * 
+                                     Math.exp(-Math.sqrt((x-3)**2 + (y-3)**2) * 0.3) * 0.8;
+                            const h2 = Math.sin(Math.sqrt((x+3)**2 + (y+2)**2) * 1.5 - time * 4 + 2) * 
+                                     Math.exp(-Math.sqrt((x+3)**2 + (y+2)**2) * 0.3) * 0.6;
+                            const h3 = Math.sin(Math.sqrt(x**2 + (y-4)**2) * 1.8 - time * 4 + 4) * 
+                                     Math.exp(-Math.sqrt(x**2 + (y-4)**2) * 0.3) * 0.7;
+                            const h = (h1 + h2 + h3) * 0.8;
+                            
+                            // Calculate gradient for rotation
+                            const delta = 0.2;
+                            const hx = (Math.sin(Math.sqrt((x+delta-3)**2 + (y-3)**2) * 2 - time * 4) * 
+                                       Math.exp(-Math.sqrt((x+delta-3)**2 + (y-3)**2) * 0.3) * 0.8 +
+                                       Math.sin(Math.sqrt((x+delta+3)**2 + (y+2)**2) * 1.5 - time * 4 + 2) * 
+                                       Math.exp(-Math.sqrt((x+delta+3)**2 + (y+2)**2) * 0.3) * 0.6 +
+                                       Math.sin(Math.sqrt((x+delta)**2 + (y-4)**2) * 1.8 - time * 4 + 4) * 
+                                       Math.exp(-Math.sqrt((x+delta)**2 + (y-4)**2) * 0.3) * 0.7) * 0.8;
+                            
+                            const slopeX = (hx - h) / delta;
+                            
+                            dummy.position.set(x, h * 0.8 + 0.2, y);
+                            dummy.rotation.z = -slopeX * 0.5;
+                            dummy.rotation.x = Math.PI / 2;
+                            dummy.scale.setScalar(0.5 + Math.abs(h) * 0.3);
+                            dummy.updateMatrix();
+                            arrows.setMatrixAt(idx++, dummy.matrix);
+                        }
+                    }
+                    arrows.instanceMatrix.needsUpdate = true;
+                    
+                    // Update wireframe
+                    const wirePositions = wireframe.geometry.attributes.position;
+                    for(let i = 0; i < positions.count; i++) {
+                        const x = positions.getX(i);
+                        const y = positions.getY(i);
+                        const h1 = Math.sin(Math.sqrt((x-3)**2 + (y-3)**2) * 2 - time * 4) * 
+                                 Math.exp(-Math.sqrt((x-3)**2 + (y-3)**2) * 0.3) * 0.8;
+                        const h2 = Math.sin(Math.sqrt((x+3)**2 + (y+2)**2) * 1.5 - time * 4 + 2) * 
+                                 Math.exp(-Math.sqrt((x+3)**2 + (y+2)**2) * 0.3) * 0.6;
+                        const h3 = Math.sin(Math.sqrt(x**2 + (y-4)**2) * 1.8 - time * 4 + 4) * 
+                                 Math.exp(-Math.sqrt(x**2 + (y-4)**2) * 0.3) * 0.7;
+                        const h = (h1 + h2 + h3) * 0.8;
+                        wirePositions.setZ(i, h * 0.8);
+                    }
+                    wirePositions.needsUpdate = true;
+                    
+                    renderer.render(scene, camera);
+                }
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = performance.now() * 0.001;
+            scenes.forEach(scene => {
+                if(scene && scene.update) scene.update(time);
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            scenes.forEach(scene => {
+                if(scene && scene.camera && scene.renderer) {
+                    scene.camera.aspect = window.innerWidth / window.innerHeight;
+                    scene.camera.updateProjectionMatrix();
+                    scene.renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape') closeCodePanel();
+        });
+    </script>
+</body>
+</html>
